@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RSS News Studio</title>
+  <link rel="stylesheet" href="/static/style.css?v=20261122-11">
+  <script defer src="/static/app.js?v=20261122-11"></script>
+</head>
+<body>
+<header class="top"><div class="wrap bar">
+  <div><span class="eyebrow">HSE NLP · RSS AGGREGATOR</span><h1>News Studio<span class="accent">.</span></h1><p class="sub">Собираем новости, настраиваем персональный поиск и объясняем результаты.</p></div>
+  <nav><a href="/docs" target="_blank" rel="noopener">Swagger ↗</a></nav>
+</div></header>
+<main class="wrap">
+  <div id="notice" role="status" aria-live="polite"></div>
+  <section id="sources" class="section">
+    <div class="section-head"><div><span class="eyebrow">ИСТОЧНИКИ</span><h2>RSS-каналы</h2><p class="muted">Общие источники новостей. Базовые RSS появляются при запуске без скачивания новостей. Обновляйте все каналы или отдельный источник кнопкой; автоматическое обновление настраивается отдельно.</p></div>
+    <button id="refresh-all" class="button ghost" type="button">↻ Подтянуть все RSS</button></div>
+    <div class="panel">
+      <p class="hint">При запуске регистрируются базовые новостные RSS и наш тестовый канал, но новости не скачиваются. Нажмите «Подтянуть все RSS» для первой загрузки. Другие каналы можно подключить вручную.</p>
+      <form id="add-source" class="form-line"><label class="grow">Адрес RSS-канала<input id="rss-url" required type="url" placeholder="https://example.com/feed.xml"></label><button class="button primary" type="submit">+ Добавить RSS</button></form>
+      <div id="source-list" class="stack"><p class="muted">Загружаем источники…</p></div>
+    </div>
+    <details class="panel details"><summary>Тестовый RSS · опубликовать новость</summary>
+      <p class="muted">Публикация появится в XML-канале, а в общей ленте — после обычного RSS-обновления.</p>
+      <form id="publish-form" class="stack">
+        <label>Заголовок<input id="publish-title" required maxlength="500" placeholder="Новая статья про NLP"></label>
+        <label>Краткое описание (необязательно)<textarea id="publish-summary" rows="2" placeholder="О чём новость"></textarea></label>
+        <label>Полный текст RSS (необязательно)<textarea id="publish-content" rows="4" placeholder="Текст новости в content:encoded"></textarea></label>
+        <label>Теги через запятую<input id="publish-tags" placeholder="NLP, transformers"></label>
+        <div class="actions"><button class="button primary" type="submit">Опубликовать</button><a href="/test-feed/rss.xml" target="_blank" rel="noopener">Посмотреть XML ↗</a></div>
+        <p id="publish-status" class="inline-status" role="status" aria-live="polite"></p>
+      </form>
+    </details>
+  </section>
+  <section id="profile" class="section">
+    <div class="section-head"><div><span class="eyebrow">ПЕРСОНАЛИЗАЦИЯ</span><h2>Пользователь и фильтры</h2><p class="muted">У каждого пользователя свои ключевые слова, семантические темы, Navec и подписки. Сохраните настройки для следующего входа.</p></div></div>
+    <div class="panel">
+      <div class="form-line profile-row">
+        <label class="grow">Пользователь<select id="user-select"><option value="">Выберите пользователя</option></select></label>
+        <form id="new-user" class="inline-create"><label>Новый профиль<input id="new-user-name" required placeholder="Имя"></label><button class="button secondary" type="submit">Создать</button></form>
+      </div>
+      <div id="profile-details" hidden>
+      <div class="actions"><button id="save-config" class="button secondary" type="button">Сохранить настройки</button><span id="draft-indicator" class="muted"></span></div>
+      <hr>
+      <div class="two">
+        <div><h3>Ключевые слова</h3><p class="hint">Одна фраза в строке — отдельный OR-фильтр.</p><label>Ключевые слова<textarea id="keywords" rows="5" placeholder="трансформер&#10;искусственный интеллект"></textarea></label><div class="enrichment"><label class="check"><input id="synonyms" type="checkbox"> Использовать похожие слова Navec при поиске</label><button id="expand-keywords" type="button" class="button ghost">Посмотреть расширение Navec</button><p id="expansion-status" class="hint" role="status"></p></div></div>
+        <div><h3>Тематика пользователя</h3><p class="hint">Опишите смысл, а не точные слова статьи.</p><label>Семантический запрос<textarea id="semantic-query" rows="3" placeholder="Новые архитектуры больших языковых моделей"></textarea></label>
+        </div>
+      </div>
+      <hr>
+      <div class="subscriptions-heading"><h3>Подписки на RSS</h3><button id="select-all-sources" class="button ghost" type="button">Выбрать все</button></div>
+      <p class="hint">Отметьте только каналы, по которым нужен поиск.</p>
+      <div id="subscription-list" class="checks"></div>
+      </div>
+    </div>
+  </section>
+  <section id="search" class="section" hidden>
+    <div class="section-head"><div><span class="eyebrow">ПОИСК</span><h2>Настроить выдачу</h2></div></div>
+    <div class="panel">
+      <fieldset class="modes"><legend>Режим поиска</legend>
+        <label><input type="radio" name="mode" value="keyword" checked><span><strong>Только слова</strong><small>BM25 + лемматизация</small></span></label>
+        <label><input type="radio" name="mode" value="semantic"><span><strong>Только семантика</strong><small>Embeddings + cosine</small></span></label>
+        <label><input type="radio" name="mode" value="hybrid"><span><strong>Гибрид · RRF</strong><small>BM25 + cosine, RRF</small></span></label>
+      </fieldset>
+      <div class="form-line control-row">
+        <label>Добавлено с даты<input id="date-from" type="date"></label>
+        <label id="semantic-threshold-field" hidden>Порог cosine similarity<input id="threshold" type="number" step="0.05" min="-1" max="1" value="0.5" title="Используется при Semantic и Hybrid"></label>
+        <label>Лимит новостей<input id="search-limit" type="number" min="1" max="100" step="1" value="20"></label>
+        <button id="search-button" class="button primary" type="button">Найти новости <span aria-hidden="true">→</span></button>
+      </div>
+      <div id="hybrid-weights" class="hybrid-weights" hidden>
+        <strong>Веса сигналов для взвешенного RRF</strong>
+        <div class="form-line">
+          <label>BM25<input id="bm25-weight" type="number" min="0" max="1" step="0.1" value="0.4"></label>
+          <label>Embeddings<input id="semantic-weight" type="number" min="0" max="1" step="0.1" value="0.6"></label>
+        </div>
+        <p class="hint">Укажите доли от 0 до 1; сумма должна равняться 1. Вес применяется к ранговому вкладу, а не к сырым BM25/cosine scores.</p>
+      </div>
+      <p id="capability-status" class="hint" role="status"></p><p class="hint">Поиск использует фильтры выбранного профиля (включая несохранённые изменения). Режим, порог cosine, дата и лимит влияют только на текущую выдачу. Гибрид = слияние рангов RRF, а не обученная модель.</p>
+    </div>
+  </section>
+  <section id="results" class="section" hidden>
+    <div class="section-head"><div><span class="eyebrow">РЕЗУЛЬТАТЫ</span><h2>Лента новостей</h2></div><div id="result-count" class="count">—</div></div>
+    <div id="results-list" class="news-grid"><div class="empty">Выберите пользователя, источники и нажмите «Найти новости».</div></div>
+  </section>
+</main>
+<dialog id="feedback-dialog" class="app-dialog" aria-labelledby="feedback-title" aria-describedby="feedback-message">
+  <h3 id="feedback-title"></h3>
+  <p id="feedback-message"></p>
+  <div class="actions dialog-actions">
+    <button id="feedback-ok" class="button primary" type="button">ОК</button>
+  </div>
+</dialog>
+<dialog id="user-conflict-dialog" class="app-dialog" aria-labelledby="user-conflict-title" aria-describedby="user-conflict-message">
+  <h3 id="user-conflict-title">Имя уже занято</h3>
+  <p id="user-conflict-message"></p>
+  <div class="actions dialog-actions">
+    <button id="user-conflict-ok" class="button primary" type="button">ОК</button>
+  </div>
+</dialog>
+<footer class="wrap foot">RSS News Studio · HSE NLP · Учебный прототип</footer>
+</body></html>

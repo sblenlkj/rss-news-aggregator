@@ -1,0 +1,25 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Local runtime data and credentials
+.env
+.env.*
+!.env.example
+data/*.db
+data/*.db-*
+data/*.sqlite*
+data/qdrant/
+data/test_feed.json
+
+# artifacts
+AGENTS.md
+tunnel.md
+
